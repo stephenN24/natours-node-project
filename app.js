@@ -75,6 +75,22 @@ app.patch('/api/v1/tours/:id', (req, res) => {
   });
 });
 
+app.delete('/api/v1/tours/:id', (req, res) => {
+  const tourId = +req.params.id;
+
+  if (tourId >= tours.length) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'invalid Id',
+    });
+  }
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
+
 function updateTour(dataToUpdate, tourID) {
   const index = tours.findIndex((tour) => tour.id === tourID);
   tours[index] = { ...tours[index], ...dataToUpdate };
