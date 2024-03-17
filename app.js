@@ -45,7 +45,7 @@ app.post('/api/v1/tours', (req, res) => {
     `${__dirname}/dev-data/data/tours-simple.json`,
     JSON.stringify(tours),
     (err) => {
-      res.status(200).json({
+      res.status(201).json({
         status: 'success',
         data: {
           tour: newTour,
@@ -54,6 +54,32 @@ app.post('/api/v1/tours', (req, res) => {
     }
   );
 });
+
+app.patch('/api/v1/tours/:id', (req, res) => {
+  const dataToUpdate = req.body;
+  const tourId = +req.params.id;
+
+  if (tourId >= tours.length) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'invalid Id',
+    });
+  }
+
+  const tour = updateTour(dataToUpdate, tourId);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour,
+    },
+  });
+});
+
+function updateTour(dataToUpdate, tourID) {
+  const index = tours.findIndex((tour) => tour.id === tourID);
+  tours[index] = { ...tours[index], ...dataToUpdate };
+  return tours[index];
+}
 
 const port = 3000;
 app.listen(port, () => {
