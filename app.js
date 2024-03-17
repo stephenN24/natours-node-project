@@ -1,14 +1,22 @@
 const express = require('express');
 const fs = require('fs');
 
-const app = express();
-app.use(express.json());
 const port = 3000;
+const app = express();
 
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
+// Middlewares
+app.use(express.json());
+
+app.use((req, res, next) => {
+  req.requestedTime = new Date().toISOString();
+  next();
+});
+
+// Route handlers
 const updateTourData = (dataToUpdate, tourID) => {
   const index = tours.findIndex((tour) => tour.id === tourID);
   tours[index] = { ...tours[index], ...dataToUpdate };
@@ -18,6 +26,7 @@ const updateTourData = (dataToUpdate, tourID) => {
 const getAllTours = (req, res) => {
   res.status(200).json({
     status: 'success',
+    requestedAt: req.requestedTime,
     results: tours.length,
     data: {
       tours,
@@ -98,6 +107,7 @@ const deleteTour = (req, res) => {
   });
 };
 
+// Routes
 app.route('/api/v1/tours').get(getAllTours).post(createTour);
 
 app
@@ -106,6 +116,7 @@ app
   .patch(updateTour)
   .delete(deleteTour);
 
+//Start server
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
