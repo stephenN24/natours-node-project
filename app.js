@@ -3,12 +3,19 @@ const fs = require('fs');
 
 const app = express();
 app.use(express.json());
+const port = 3000;
 
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
-app.get('/api/v1/tours', (req, res) => {
+const updateTourData = (dataToUpdate, tourID) => {
+  const index = tours.findIndex((tour) => tour.id === tourID);
+  tours[index] = { ...tours[index], ...dataToUpdate };
+  return tours[index];
+};
+
+const getAllTours = (req, res) => {
   res.status(200).json({
     status: 'success',
     results: tours.length,
@@ -16,9 +23,9 @@ app.get('/api/v1/tours', (req, res) => {
       tours,
     },
   });
-});
+};
 
-app.get('/api/v1/tours/:id', (req, res) => {
+const getTour = (req, res) => {
   const id = +req.params.id;
   const tour = tours.find((tour) => tour.id == id);
 
@@ -34,9 +41,9 @@ app.get('/api/v1/tours/:id', (req, res) => {
       tour,
     },
   });
-});
+};
 
-app.post('/api/v1/tours', (req, res) => {
+const createTour = (req, res) => {
   const newId = tours.at(-1).id + 1;
   const newTour = Object.assign({ id: newId }, req.body); // Create new tour
   tours.push(newTour);
@@ -53,9 +60,9 @@ app.post('/api/v1/tours', (req, res) => {
       });
     }
   );
-});
+};
 
-app.patch('/api/v1/tours/:id', (req, res) => {
+const updateTour = (req, res) => {
   const dataToUpdate = req.body;
   const tourId = +req.params.id;
 
@@ -66,16 +73,16 @@ app.patch('/api/v1/tours/:id', (req, res) => {
     });
   }
 
-  const tour = updateTour(dataToUpdate, tourId);
+  const tour = updateTourData(dataToUpdate, tourId);
   res.status(200).json({
     status: 'success',
     data: {
       tour,
     },
   });
-});
+};
 
-app.delete('/api/v1/tours/:id', (req, res) => {
+const deleteTour = (req, res) => {
   const tourId = +req.params.id;
 
   if (tourId >= tours.length) {
@@ -89,15 +96,16 @@ app.delete('/api/v1/tours/:id', (req, res) => {
     status: 'success',
     data: null,
   });
-});
+};
 
-function updateTour(dataToUpdate, tourID) {
-  const index = tours.findIndex((tour) => tour.id === tourID);
-  tours[index] = { ...tours[index], ...dataToUpdate };
-  return tours[index];
-}
+app.route('/api/v1/tours').get(getAllTours).post(createTour);
 
-const port = 3000;
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(deleteTour);
+
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
