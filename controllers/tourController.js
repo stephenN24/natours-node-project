@@ -15,6 +15,17 @@ exports.checkID = (req, res, next, val) => {
   // Only next if id is valid
   next();
 };
+
+exports.checkBody = (req, res, next) => {
+  if (!req.body.name || !req.body.price) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Missing name or price',
+    });
+  }
+  next();
+};
+
 exports.updateTourData = (dataToUpdate, tourID) => {
   const index = tours.findIndex((tour) => tour.id === tourID);
   tours[index] = { ...tours[index], ...dataToUpdate };
